@@ -34,6 +34,27 @@ public class Unit {
         this.in = 0;
         this.a = 0;
     }
+
+    /**
+     * toString method on the unit
+     * @return a string to be printed with the activation function of the unit
+     */
+    @Override
+    public String toString() {
+        String layer="";
+        if(this.ref.contains("input")){
+            layer="in ";
+        }
+        if(this.ref.contains("output")){
+            layer=" out";
+        }
+        if(this.ref.contains("hidden")){
+            layer=" hi ";
+        }
+        return layer+" Unit a: "+this.getA();
+    }
+    
+    
     
     /**
      * adds a link to the link list of the unit ( from this unit or to )
@@ -44,7 +65,8 @@ public class Unit {
     }
     
     /**
-     * 
+     * function sums the product of weights and activation function
+     * value on previous node
      * @return returns the sum of the weights of all input links
      */
     

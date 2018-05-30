@@ -29,6 +29,15 @@ public class Link {
     }
     
     /**
+     * toString method on the link
+     * @return a string to be printed with the weight of the link
+     */
+    @Override
+    public String toString() {
+        return " ---"+this.getWeight()+"---- ";
+    }
+    
+    /**
      * 
      * @return the object upstream node (input)
      */

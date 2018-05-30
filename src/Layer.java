@@ -64,5 +64,11 @@ public class Layer {
     public void addUnit(Unit u){
         this.units.add(u);
     }
+
+    @Override
+    public String toString() {
+        return "Layer{" + "units=" + units + ", label=" + label + '}';
+    }
+    
     
 }

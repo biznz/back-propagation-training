@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -19,18 +20,19 @@ import java.util.Set;
  */
 public class Main {
     
-    private static int inputUnits = 4;
-    private static int hiddenUnits = 4;
-    private static int num_hidden_layers = 1;
-    private static int outputUnits = 1;
-    private static double lambda;
-    private static double sampleError = 0.5;
-    private static Set<Example> examples;
+    private static int inputUnits = 4; // number of the input Units
+    private static int hiddenUnits = 4; // number of hidden units
+    private static int num_hidden_layers = 1; // number of hidden layers
+    private static int outputUnits = 1; // number of output units
+    private static double lambda = 0.05; // learning rate
+    private static double sampleError = 0.5;// sample Error
+    private static Set<Example> examples; // set of examples
+    private static Network ANN;
     
     public static void main(String[] args){
         
         readInput(); // read the examples from the file
-        Network ANN = new Network();
+        ANN = new Network();
         
         Layer layer = new Layer("input");
         for(int i=0; i<inputUnits; i++){
@@ -56,8 +58,11 @@ public class Main {
             output.addUnit(unit);
         }
         ANN.setOutput(output);
-        System.out.println(ANN.getOutputLayer().toString());
-        back_prop_learning(examples, ANN); // calls the artificial neural network method
+        
+        //System.out.println(ANN.getOutputLayer().toString());
+        //System.out.println(ANN.getLinks()+"\n\n");
+//        System.out.println("running the learning algorithm\n");
+        System.out.println(back_prop_learning(examples, ANN)); // calls the artificial neural network method
     }
     
     private static Network back_prop_learning(Set<Example> examples,Network network){
@@ -67,57 +72,86 @@ public class Main {
             for(Link l:network.getLinks()){
                 //set a random value for the weight
                 l.setWeight(randomNumber());
+                System.out.println("link weight"+l);
             }
             for(Example ex:examples){
                 System.out.println(ex);
+                
             /* Propagate the inputs forward to compute the outputs */
                 int s = 0;
                 for(Unit node: network.getInputLayer().getUnits()){
-                    s++;
                     int value = ex.getInput()[s];
                     node.setA(value);
                     System.out.println(node);
+                    s++;
                 }
                 //on each of the layers on the list of layers
-                while(network.getListIterator().hasNext()){
-                    Layer temp = network.getListIterator().next();
-                    for(Unit unit: temp.getUnits()){
-                        unit.setIn(unit.weighted_sum_of_inputs());
+                int num = 0;
+                while(network.getLayers().size()>num){
+                    Layer l = network.getLayers().get(num);
+                    for(Unit unit: l.getUnits()){
+                        unit.setIn(unit.weighted_sum_of_inputs(ANN.getLinks()));
                         unit.setA(network.g(unit.getIn()));
                         System.out.println(unit);
                     }
+                    num++;
                 }
+                //updating on the outputLayer
+                Layer lOutput = network.getOutputLayer();
+                for(Unit unit: lOutput.getUnits()){
+                        unit.setIn(unit.weighted_sum_of_inputs(ANN.getLinks()));
+                        unit.setA(network.g(unit.getIn()));
+                        System.out.println(unit);
+                    }
+                
+                
                 /* Propagate deltas backward from output layer to input layer */
+                System.out.println("\npropagating backward");
                 for(Unit j: network.getOutputLayer().getUnits()){
                     // calculate the delta for node unit
                     double errorj = network.d_g(j.getIn())* ( ex.getOutput() -j.getA()); 
+                    System.out.println("Δ[j] ← g  (in j ) × (y j − a j )");
+                    System.out.println("Δ[j] ="+errorj);
+                    System.out.println("y j ="+ex.getOutput());
+                    System.out.println("a j ="+j.getA());
                     //double errorj = 0;
                     delta.put(j.getRef(), errorj);
                     // in sum the error associated with that output unit
+                    System.out.println(j); // prints the ouput unit current values
                 }
-                //on each of the layers on the list of layers    
-                while(network.getListIterator().hasPrevious()){
-                    // propagate the weights throughout the corresponding units
-                    for(Unit i: network.getListIterator().previous().getUnits()){
-                        // according to a propagation rule
-                        double errori = network.d_g(i.getIn())*i.weighted_error(delta);
-                        delta.put(i.getRef(),errori);
+                //on each of the layers on the list of layers
+                //Layer = L-1 to 1
+                /* Propagating on hidden layers */
+                int as=network.getLayers().size();
+                while(as>0){
+                    Layer l = network.getLayers().get(as-1);
+                    //update the errors on 
+                    for(Unit i: l.getUnits()){
+                        double errori = network.d_g(i.getIn())*i.weighted_error(delta,ANN.getLinks());
+                        delta.put(i.getRef(), errori);
+                        // unit.setIn(unit.weighted_sum_of_inputs());
+                        // unit.setA(network.g(unit.getIn()));
                         System.out.println(i);
                     }
+                    as--;
                 }
-                // for each weight in the network
+                
                 /* Update every weight in network using deltas */
+                System.out.println("\nupdating network weights");
                 for(Link l:network.getLinks()){
                     //calculate new weight
-                    double alpha=0.0;
-                    double weightij = l.getWeight()+ lambda * l.getUpstream().getA() 
-                            * delta.get(l.getDownstream().getRef());
+                    double linkWeight = l.getWeight();
+                    // System.out.println("axiom weigth "+linkWeight);
+                    // System.out.println("upstream neuron value "+l.getUpstream().getA());
+                    // System.out.println("downstream neuron value "+l.getDownstream().getRef());
+                    // System.out.println("delta on the upstream neuron "+delta.get(l.getDownstream().getRef()));
+                    double weightij = l.getWeight()+ lambda * l.getUpstream().getA() * delta.get(l.getDownstream().getRef());
                     l.setWeight(weightij);
                     System.out.println(l);
                 }
             }
-            
-        }while(training_error()> 0.05);
+        }while(stopping_criterion(delta,examples,0.05));
+        //System.out.println("------------\n\n");
         return network;
     }
     
@@ -128,13 +162,26 @@ public class Main {
     
     private static int randomNumber(){
         double rand = Math.random();
-        if(rand<0.33)
+        if(rand<1/3.0)
             return -1;
-        else if (rand<=0.66)
+        else if (rand<=2/3.0)
             return 0;
         else{
             return 1;
         }
+    }
+    
+    /**
+     * stopping criterion
+     * @return a double on the absolute error between outputUnit value and example value
+     */
+    private static boolean stopping_criterion(HashMap<String,Double> delta,Set<Example> examples,double learning_rate){
+        for(Example ex:examples){
+            if(!(ex.getOutput()-delta.get("output")<learning_rate)){
+                return false;
+            }
+        }
+        return true;
     }
     
     /**
@@ -159,6 +206,7 @@ public class Main {
             BufferedReader in = new BufferedReader(new FileReader(new File(filePath)));
             while((exampleLine=in.readLine())!=null){
                 Example ex = new Example(exampleLine);
+                
                 examples.add(ex);
             }
         }

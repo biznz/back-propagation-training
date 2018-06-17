@@ -34,6 +34,18 @@ public class Layer {
     }
 
     /**
+     * used to get the single output 
+     * unit of the output layer
+     * @return a Unit, the ouput unit of the output Layer
+     */
+    public Unit getSingleUnit(){
+        for(Unit i: getUnits()){
+            return i;
+        }
+        return null;
+    }
+    
+    /**
      * 
      * @return the label on the layer
      */

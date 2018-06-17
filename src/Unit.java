@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -41,20 +42,16 @@ public class Unit {
      */
     @Override
     public String toString() {
-        String layer="";
-        if(this.ref.contains("input")){
-            layer="in ";
-        }
-        if(this.ref.contains("output")){
-            layer=" out";
-        }
-        if(this.ref.contains("hidden")){
-            layer=" hi ";
-        }
-        return layer+" Unit a: "+this.getA();
+        return "("+this.getRef()+"--> in:"+this.getIn()+",a:"+this.getA()+")";
     }
     
-    
+    public String printLinks(){
+        String result ="";
+        for(Link l:this.links){
+            result+=l.getUpstream()+""+l.getWeight()+""+l.getDownstream()+"\n";
+        }
+        return result;
+    }
     
     /**
      * adds a link to the link list of the unit ( from this unit or to )
@@ -70,13 +67,16 @@ public class Unit {
      * @return returns the sum of the weights of all input links
      */
     
-    protected double weighted_sum_of_inputs(){
+    protected double weighted_sum_of_inputs(Set<Link> networkLinks){
         double inj=0;
-        for(Link l:links){
+        //System.out.println(" printing weighted sum for"+this);
+        for(Link l:networkLinks){
+            //System.out.println("link: "+" weighted sum "+l);
             if(l.getDownstream().equals(this)){
-                inj+=l.getWeight()*l.getUpstream().getA();
+                inj+=l.getWeight()*l.getUpstream().getA(); // SUM Wij * Ai
             }
         }
+        //System.out.println("resulting sum"+inj);
         return inj;
     }
 
@@ -85,11 +85,14 @@ public class Unit {
      * @param delta hashmap of errors on network units
      * @return the weighted error sum
      */
-    protected double weighted_error(HashMap<String,Double> delta){
+    protected double weighted_error(HashMap<String,Double> delta,Set<Link> networkLinks){
         double weighted_error = 0.0;
-        for(Link l:this.links){
-            String ref = l.getDownstream().getRef();
-            weighted_error = l.getWeight() * delta.get(ref);
+        for(Link l:networkLinks){
+            if(l.getUpstream().equals(this)){
+                String ref = l.getDownstream().getRef();
+                System.out.println("weighted error "+ref);
+                weighted_error+= l.getWeight() * delta.get(ref);
+            }
         }
         return weighted_error;
     }
@@ -107,7 +110,6 @@ public class Unit {
      * 
      * @param a value returned by the activation function
      */
-    
     public void setA(double a) {
         this.a = a;
     }

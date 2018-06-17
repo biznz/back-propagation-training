@@ -18,9 +18,11 @@ public class Example {
      */
     public Example(String input){
         String[] in = input.split(" ");
-        this.input = new int[in.length];
+        System.out.println("split length"+in.length);
+        this.input = new int[in.length-1];
         this.output = Integer.parseInt(in[in.length-1]);
-        for(int i=0;i<in.length;i++){
+        //System.out.println("split length"+in.length);
+        for(int i=0;i<in.length-1;i++){
             this.input[i] = Integer.parseInt(in[i]);
         }
     }

@@ -34,7 +34,7 @@ public class Link {
      */
     @Override
     public String toString() {
-        return " ---"+this.getWeight()+"---- ";
+        return this.getUpstream()+"---("+this.getWeight()+")----"+this.getDownstream()+"\n";
     }
     
     /**

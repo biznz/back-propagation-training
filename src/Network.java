@@ -83,10 +83,15 @@ public class Network {
      * @param l 
      */
     public void addLayer(Layer l){
-        this.L.add(l);
-        if(this.L.size()==0){
+        if(this.L.isEmpty()){
+            System.out.println("L is empty");
             this.attachNeurons(this.input,l);
         }
+        else{
+            System.out.println("L is not empty");
+            this.attachNeurons(this.L.get(this.L.size()-1), l);
+        }
+        this.L.add(l);
     }
     
     /**
@@ -157,6 +162,17 @@ public class Network {
      */
     public void setOutput(Layer output) {
         this.output = output;
+        this.attachNeurons(this.L.get(this.L.size()-1), output);
+    }
+
+    @Override
+    public String toString() {
+        String result=""+this.getInputLayer()+"\n";
+        for(Layer l: this.getLayers()){
+            result+=l+"\n";
+        }
+        result+=this.getOutputLayer()+"\n";
+        return "Network{" +  result+'}';
     }
     
     

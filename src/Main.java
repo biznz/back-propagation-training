@@ -5,8 +5,10 @@ import java.io.FileReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -28,6 +30,7 @@ public class Main {
     private static double sampleError = 0.5;// sample Error
     private static Set<Example> examples; // set of examples
     private static Network ANN;
+    private static int randomRange[] = {-1,1};
     
     public static void main(String[] args){
         
@@ -59,10 +62,12 @@ public class Main {
         }
         ANN.setOutput(output);
         
+        //System.out.println("ANN getLayers returns:"+ANN.getLayers().size());
         //System.out.println(ANN.getOutputLayer().toString());
         //System.out.println(ANN.getLinks()+"\n\n");
 //        System.out.println("running the learning algorithm\n");
         System.out.println(back_prop_learning(examples, ANN)); // calls the artificial neural network method
+        //System.out.println(randomDouble());
     }
     
     private static Network back_prop_learning(Set<Example> examples,Network network){
@@ -71,7 +76,7 @@ public class Main {
             //for each weight in network
             for(Link l:network.getLinks()){
                 //set a random value for the weight
-                l.setWeight(randomNumber());
+                l.setWeight(randomDouble());
                 System.out.println("link weight"+l);
             }
             for(Example ex:examples){
@@ -85,7 +90,8 @@ public class Main {
                     System.out.println(node);
                     s++;
                 }
-                //on each of the layers on the list of layers
+                //on each of the layers on network list of layers
+                // these include the hiddent layers
                 int num = 0;
                 while(network.getLayers().size()>num){
                     Layer l = network.getLayers().get(num);
@@ -155,22 +161,6 @@ public class Main {
         return network;
     }
     
-    /** 
-     * used to set random values on the weights
-     * @return a random int between -1 and 1 
-     */
-    
-    private static int randomNumber(){
-        double rand = Math.random();
-        if(rand<1/3.0)
-            return -1;
-        else if (rand<=2/3.0)
-            return 0;
-        else{
-            return 1;
-        }
-    }
-    
     /**
      * stopping criterion
      * @return a double on the absolute error between outputUnit value and example value
@@ -215,4 +205,8 @@ public class Main {
         }
     }
     
+    private static double randomDouble(){
+        double random = ThreadLocalRandom.current().nextDouble(randomRange[0], randomRange[1]);
+        return random;
+    }
 }

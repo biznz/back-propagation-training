@@ -69,10 +69,11 @@ public class Unit {
     
     protected double weighted_sum_of_inputs(Set<Link> networkLinks){
         double inj=0;
-        //System.out.println(" printing weighted sum for"+this);
+        System.out.println("printing weighted sum for"+this);
         for(Link l:networkLinks){
             //System.out.println("link: "+" weighted sum "+l);
             if(l.getDownstream().equals(this)){
+                System.out.println("selected this link "+l);
                 inj+=l.getWeight()*l.getUpstream().getA(); // SUM Wij * Ai
             }
         }
